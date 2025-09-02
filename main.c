@@ -4,6 +4,35 @@
 /**
  * main.c
  */
+// LED setup
+#define red 0x01
+#define blue 0x02
+#define green 0x04
+
+#define STCTRL *((volatile long *) 0xE000E010)
+#define STRELOAD *((volatile long *) 0xE000E014)
+#define STCURRENT *((volatile long *) 0xE000E018)
+
+#define COUNT_FLAG (1 << 16)
+
+#define ENABLE  (1 << 0)
+#define CLKINT (1 << 2)
+
+#define CLOCK_KHZ 16000
+
+void delay(int ms){
+    STRELOAD = CLOCK_KHZ*ms;
+    STCURRENT = 0;
+    STCTRL = (CLKINT | ENABLE);
+
+    while((STCTRL & COUNT_FLAG) == 0){
+
+    }
+
+    STCTRL = 0;
+    return;
+}
+
 int main(void)
 {
     SYSCTL_RCGC2_R |=   0x00000020;      // ENABLE CLOCK TO GPIOF
@@ -15,16 +44,9 @@ int main(void)
 
     while(1)
     {
-        GPIO_PORTF_DATA_R = 0x0;
-        if (!(GPIO_PORTF_DATA_R & 0x01) && (GPIO_PORTF_DATA_R & 0x10) ){
-            GPIO_PORTF_DATA_R = 0x02;
-        }
-        else if (!(GPIO_PORTF_DATA_R & 0x10) && (GPIO_PORTF_DATA_R & 0x01)){
-                    GPIO_PORTF_DATA_R = 0x04;
-                }
-        else if (!(GPIO_PORTF_DATA_R & 0x10) && !(GPIO_PORTF_DATA_R & 0x01)){
-                            GPIO_PORTF_DATA_R = 0x06;
-                        }
-        else GPIO_PORTF_DATA_R = 0x00;
+        delay(500);
+        GPIO_PORTF_DATA_R = 0x02;
+        delay(500);
+        GPIO_PORTF_DATA_R = 0x00;
     }
 }
